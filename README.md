@@ -3,7 +3,7 @@
 
 <img src = src/main_pic.png>
 
-##An application using NeFT
+## An application using NeFT
 ### Model: Mistral-7B-v0.1
 ### Dataset: alpaca
 ## Step1: Prepare Full-Finetuned Model (FT-full)
