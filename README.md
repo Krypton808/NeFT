@@ -71,7 +71,6 @@ torchrun --nproc_per_node=2 --master_port=25640 train_sft_Llama-3.2-1B-Instruct.
 --fsdp "full_shard" \
 --fsdp_config ./fsdp_config/fsdp_config.json
 
-# To run 
 # Inside "trainer_add_grad_mask_load_neuron_dict_Mistral_7B_v1.py"
 # there is a variable "mask_dir", change the value of this variable to your mask file path
 
