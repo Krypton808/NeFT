@@ -146,10 +146,11 @@ def cal_model_weight_cos(model_path_1=r'/mnt/nfs/algo/intern/haoyunx11/models/ll
     #     index=False)
 
 
-def cal_model_weight_cos_Mistral_7B_v1(model_path_1=r'/mnt/nfs/algo/intern/haoyunx11/models/llm/llama-2/Llama-2-7b-chat-hf',
-                         model_path_2=r'/mnt/nfs/algo/intern/haoyunx11/models/sft/summary/enfr/train_enfr_org/checkpoint-250',
-                         save_dir=r'/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/summary_neurons_sim/enfr/org_allsft/250steps',
-                         is_lora=False):
+def cal_model_weight_cos_Mistral_7B_v1(
+        model_path_1=r'/mnt/nfs/algo/intern/haoyunx11/models/llm/llama-2/Llama-2-7b-chat-hf',
+        model_path_2=r'/mnt/nfs/algo/intern/haoyunx11/models/sft/summary/enfr/train_enfr_org/checkpoint-250',
+        save_dir=r'/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/summary_neurons_sim/enfr/org_allsft/250steps',
+        is_lora=False):
     from transformer_lens import HookedTransformer
     tokenizer = AutoTokenizer.from_pretrained(model_path_1)
 
@@ -192,9 +193,7 @@ def cal_model_weight_cos_Mistral_7B_v1(model_path_1=r'/mnt/nfs/algo/intern/haoyu
 
     W_out_2 = model_2.W_out.detach().to(torch.float).cpu().numpy()
 
-    # igo_list = ['in', 'gate', 'out']
     igo_list = ['in', 'out']
-    # igo_list = ['gate']
 
     for igo in igo_list:
         if igo == 'in':
@@ -222,64 +221,6 @@ def cal_model_weight_cos_Mistral_7B_v1(model_path_1=r'/mnt/nfs/algo/intern/haoyu
         corr_df['abs_corr'] = np.abs(corr_df['corr'].values)
 
         corr_df.to_csv(save_dir + path_tail, index=False)
-
-    # neuron_corr = {}
-    # for layer_idx, w_layers in enumerate(zip(W_gate_1, W_gate_2)):
-    #     for neuron_idx, w in enumerate(zip(w_layers[0], w_layers[1])):
-    #         # print(w[0])
-    #         # print(w[1])
-    #         # print('---------------------------')
-    #
-    #         #     if neuron_idx > 6:
-    #         #         break
-    #         # break
-    #
-    #         score = cosine_similarity([w[0]], [w[1]])
-    #
-    #         if score < 0.9:
-    #             print(layer_idx)
-    #             print(neuron_idx)
-    #             print('---------------------------')
-    #
-    #         neuron_corr[(layer_idx, neuron_idx)] = score[0][0]
-    #
-    # corr_df = pd.DataFrame({'corr': pd.Series(neuron_corr)})
-    # corr_df.index.names = ['layer_idx', 'neuron_idx']
-    # corr_df = corr_df.reset_index()
-    # corr_df['abs_corr'] = np.abs(corr_df['corr'].values)
-    #
-    # corr_df.to_csv(
-    #     '/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/summary_neurons_sim/enfr/org_allsft/250steps/cos_gate.csv',
-    #     index=False)
-    #
-    # neuron_corr = {}
-    # for layer_idx, w_layers in enumerate(zip(W_out_1, W_out_2)):
-    #     for neuron_idx, w in enumerate(zip(w_layers[0], w_layers[1])):
-    #         # print(w[0])
-    #         # print(w[1])
-    #         # print('---------------------------')
-    #
-    #         #     if neuron_idx > 6:
-    #         #         break
-    #         # break
-    #
-    #         score = cosine_similarity([w[0]], [w[1]])
-    #
-    #         if score < 0.9:
-    #             print(layer_idx)
-    #             print(neuron_idx)
-    #             print('---------------------------')
-    #
-    #         neuron_corr[(layer_idx, neuron_idx)] = score[0][0]
-    #
-    # corr_df = pd.DataFrame({'corr': pd.Series(neuron_corr)})
-    # corr_df.index.names = ['layer_idx', 'neuron_idx']
-    # corr_df = corr_df.reset_index()
-    # corr_df['abs_corr'] = np.abs(corr_df['corr'].values)
-    #
-    # corr_df.to_csv(
-    #     '/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/summary_neurons_sim/enfr/org_allsft/250steps/cos_out.csv',
-    #     index=False)
 
 def cal_model_weight_cos_on_select_neuron(
         model_path_1=r'/mnt/nfs/algo/intern/haoyunx11/models/llm/llama-2/Llama-2-7b-chat-hf',
@@ -771,6 +712,7 @@ def make_mask_with_dict_and_save(
 
     return mask_dict
 
+
 def make_mask_with_dict_and_save_llama3_2_1B_neuron(
         path=r'/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/neurons_sim/final/alpaca/base_full/39000step/150000/neuron_dict_0.98869854.json',
         save_path=r"/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/neurons_sim/final/alpaca/base_full/39000step/150000/mask_cos.pt"):
@@ -797,6 +739,7 @@ def make_mask_with_dict_and_save_llama3_2_1B_neuron(
     torch.save(mask_dict, save_path)
 
     return mask_dict
+
 
 def make_mask_with_dict_and_save_Mistral_7B_v1_neuron(
         path=r'/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/neurons_sim/final/alpaca/base_full/39000step/150000/neuron_dict_0.98869854.json',
@@ -870,17 +813,6 @@ def load_mask_dict(
                 print(v[i])
                 print(v[i].shape)
                 print('*******************')
-
-
-"""
-len_500steps: 136233
-len_2500steps: 135049
-len_overlap:100450
-
-
-
-
-"""
 
 
 def cal_cos_overlap(
@@ -1211,8 +1143,8 @@ def run_get_llama3_2_1B_neuron():
     neuron_number = 6000
 
     cal_model_weight_cos(model_path_1=r'/mnt/data1/models/Llama-3.2-1B',
-                     model_path_2=r'/mnt/data1/output/model/llama3_2_1B_alpaca/checkpoint-6500',
-                     save_dir=path)
+                         model_path_2=r'/mnt/data1/output/model/llama3_2_1B_alpaca/checkpoint-6500',
+                         save_dir=path)
 
     threhold = get_threhold_score(
         path_1=path + '/cos_in.csv',
@@ -1229,13 +1161,13 @@ def run_get_llama3_2_1B_neuron():
         save_path=path + '/' + str(neuron_number) + "/mask_cos.pt")
 
 
-def run_get_Mistral_7B_v1_neuron():
-    path = '/mnt/data1/saved/NeFT/Mistral_7B_v1_2/alpaca/6500step'
-    neuron_number = 150000
-
-    cal_model_weight_cos_Mistral_7B_v1(model_path_1=r'/mnt/data1/models/Mistral-7B-v0.1',
-                     model_path_2=r'/mnt/data1/output/model/Mistral_7B_v1_alpaca_2/checkpoint-6500',
-                     save_dir=path)
+def run_get_Mistral_7B_v1_neuron(model_path_1='/mnt/data1/models/Mistral-7B-v0.1',
+                                 model_path_2='/mnt/data1/output/model/Mistral_7B_v1_alpaca_2/checkpoint-6500',
+                                 path='/mnt/data1/saved/NeFT/Mistral_7B_v1/alpaca/6500step',
+                                 neuron_number=150000):
+    cal_model_weight_cos_Mistral_7B_v1(model_path_1=model_path_1,
+                                       model_path_2=model_path_2,
+                                       save_dir=path)
 
     threhold = get_threhold_score(
         path_1=path + '/cos_in.csv',
@@ -1251,70 +1183,6 @@ def run_get_Mistral_7B_v1_neuron():
         path=path + '/' + str(neuron_number) + '/neuron_dict_' + str(threhold) + '.json',
         save_path=path + '/' + str(neuron_number) + "/mask_cos.pt")
 
-def run_NeFT_check_neuron():
-    path = '/mnt/data1/saved/check_neuron'
-
-    cal_model_weight_cos(model_path_1=r'/mnt/data1/models/Llama-3.2-1B',
-                     model_path_2=r'/mnt/data1/output/model/llama3_2_1B_alpaca_neuron_6000/checkpoint-6500',
-                     save_dir=path)
-
-def run_NeFT_check_neuron_Mistral_7B_v1():
-    path = '/mnt/data1/saved/check_neuron_Mistral_7B_v1'
-
-    cal_model_weight_cos_Mistral_7B_v1(model_path_1=r'/mnt/data1/models/Mistral-7B-v0.1',
-                     model_path_2=r'/mnt/data1/output/model/Mistral_7B_v1_alpaca_neuron_150000/checkpoint-10',
-                     save_dir=path)
-
-
-
 
 if __name__ == '__main__':
-    # make_mask_with_dict_and_save(
-    #     path=r'/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/neurons_sim/final/train_enzh_org/3200step/150000/neuron_dict_0.9985444.json',
-    #     save_path=r'/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/neurons_sim/final/train_enzh_org/3200step/150000/mask_cos.pt')
-
-    # run_1()
-
-    # cal_model_weight_cos_on_select_neuron(
-    #     model_path_1=r'/data2/haoyun/models/llm/Llama-2-7b-chat-hf',
-    #     model_path_2=r'/data2/haoyun/models/sft/final/mt/LoRA/rank_256/adapter_model',
-    #     save_dir=r'/data2/haoyun/MA_project/cos/LoRA/rank_256',
-    #     neuron_dict_path='',
-    #     is_lora=True)
-
-    # cal_model_weight_cos_on_select_neuron(
-    #     model_path_1=r'/data2/haoyun/models/llm/Llama-2-7b-chat-hf',
-    #     model_path_2=r'/mnt/nfs/algo/intern/haoyunx11/models/sft/final/mt/train_neuron/enzh/3200step_150000/checkpoint-3200',
-    #     save_dir=r'/data2/haoyun/MA_project/cos/Neurons/150000',
-    #     neuron_dict_path='/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/neurons_sim/final/train_enzh_org/3200step/150000/neuron_dict_0.9985444.json',
-    #     is_lora=False)
-
-    # run_2()
-
-    # check_neuron(model_path_1='/mnt/data1/models/Llama-3.2-1B_org',
-    #              model_path_2='/mnt/data1/output/model/llama3_2_1B_alpaca_neuron_6000/checkpoint-6500')
-
-    # get_Ratio()
-
-    # count_igo()
-
-    # compare_full_sft_and_neuron_train_cos_score_on_sn(
-    #     cos_path1=r'/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/neurons_sim/final/train_enzh_org/3200step/cos_in.csv',
-    #     cos_path2=r'/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/neurons_sim/final/train_enzh_org/train_neuron/3200step_100000/cos_in.csv',
-    #     neuron_dict_path=r'/data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/find_neuron/results/neurons_sim/final/train_enzh_org/3200step/100000/neuron_dict_0.99847424.json')
-
-# python cal_neuron_sim.py >output.out 2>&1 &
-
-    # run_get_llama3_2_1B_neuron()
     run_get_Mistral_7B_v1_neuron()
-
-    # run_NeFT_check_neuron()
-
-    # run_NeFT_check_neuron_Mistral_7B_v1()
-
-"""
-7B: 11008 * 32
-
-1B: 8192 * 16
-
-"""

@@ -85,8 +85,6 @@ def main(
     output_str_list = []
 
     for Instruction, data in zip(val_input, dataloader):
-        # print(data)
-        # print()
         inputs = tokenizer(data, return_tensors='pt', padding=True, max_length=pad_to_max_length,
                            add_special_tokens=False)
         inputs = {k: v.to(device) for k, v in inputs.items()}
@@ -94,20 +92,11 @@ def main(
         i = 0
         for o in output:
             output_str = tokenizer.decode(o, skip_special_tokens=False, spaces_between_special_tokens=False)
-            # print(output_str.strip())
-
-            # output_str_list_count_eot = output_str.split("<|eot_id|>")
-            output_str_list_count_eot = output_str.split("</s>")
             print(output_str.strip())
             output_str_raw = output_str.strip()
-
-            print(len(output_str_list_count_eot))
-
             output_str = output_str.split("[/INST]")[-1]
-            # output_str = output_str.replace("<|eot_id|>", "")
             output_str = output_str.replace("</s>", "")
             output_str_list.append(output_str)
-            print('*******************')
             writer.write({"prompt": Instruction, "response": output_str.strip(), "response_raw": output_str_raw})
             i += 1
 

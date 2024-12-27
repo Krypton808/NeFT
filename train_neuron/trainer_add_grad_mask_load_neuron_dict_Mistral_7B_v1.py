@@ -284,7 +284,7 @@ SCHEDULER_NAME = "scheduler.pt"
 SCALER_NAME = "scaler.pt"
 FSDP_MODEL_NAME = "pytorch_model_fsdp"
 
-mask_dict = torch.load(r'/mnt/data1/saved/NeFT/Mistral_7B_v1_2/alpaca/6500step/150000/mask_cos.pt')
+mask_dict = torch.load(r'/mnt/data1/saved/NeFT/Mistral_7B_v1/alpaca/6500step/150000/mask_cos.pt')
 
 
 class Trainer:
@@ -2532,75 +2532,22 @@ class Trainer:
                                 continue
 
                             if 'up_proj' not in k and 'down_proj' not in k:
-                                # print(f"module name: {k}")
                                 continue
-                            #
-                            # if torch.distributed.get_rank() == 0:
-                            #     print()
-                            #     print(f"v.grad.shape 1 get_rank_0 {k}: {v.grad.shape}")
-                            #     # print(f"mask.shape 1 get_rank_0: {mask.shape}")
-                            #
-                            #     # mask_rank_0 = mask[:v.grad.shape[0]]
-                            #     # print(f"v.grad.shape 1 get_rank_0 mask_rank_0: {v.grad.shape}")
-                            #     # print(f"mask.shape 1 get_rank_0 mask_rank_0: {mask_rank_0.shape}")
-                            #
-                            #     print()
-                            # elif torch.distributed.get_rank() == 1:
-                            #     print()
-                            #     print(f"v.grad.shape 1 get_rank_1 {k}: {v.grad.shape}")
-                            #     # print(f"mask.shape 1 get_rank_1: {mask.shape}")
-                            #
-                            # elif torch.distributed.get_rank() == 2:
-                            #     print()
-                            #     print(f"v.grad.shape 1 get_rank_2 {k}: {v.grad.shape}")
-                            #     # print(f"mask.shape 1 get_rank_2: {mask.shape}")
-                            #
-                            #     # mask_rank_1 = mask[:v.grad.shape[0]]
-                            #     # print(f"v.grad.shape 1 get_rank_1 mask_rank_1: {v.grad.shape}")
-                            #     # print(f"mask.shape 1 get_rank_1 mask_rank_1: {mask_rank_1.shape}")
-                            #
-                            #     print()
 
                             if 'up_proj' in k and 'mlp' in k:
-                                # print(f"***{k}***")
                                 for i in range(32):
                                     if '.' + str(i) + '.' in k:
                                         layer_name = str(i) + '_' + 'in'
                                         if layer_name in mask_dict.keys():
                                             mask = mask_dict[layer_name].to('cuda')
-                                            # mask = mask.reshape(14336, 4096)
-                                            # print(f"model name: {k} | v.grad.shape 1: get_rank 0 {v.grad.shape}")
-                                            # print()
-
-
-                                            # if torch.distributed.get_rank() == 0:
-                                            #     print(f"model name: {k} | v.grad.shape 1: get_rank 0 {v.grad.shape}")
-                                            #     print()
-                                            #
-                                            # elif torch.distributed.get_rank() == 1:
-                                            #     print(f"model name: {k} | v.grad.shape 1: get_rank 1 {v.grad.shape}")
-                                            #     print()
-
                                             v.grad *= mask
 
-
-
                             elif 'down_proj' in k and 'mlp' in k:
-                                # print(f"+++{k}+++")
                                 for i in range(32):
                                     if '.' + str(i) + '.' in k:
                                         layer_name = str(i) + '_' + 'out'
                                         if layer_name in mask_dict.keys():
                                             mask = mask_dict[layer_name].to('cuda')
-                                            # mask = mask.reshape(4096, 14336)
-
-                                            # if torch.distributed.get_rank() == 0:
-                                            #     print(f"model name: {k} | v.grad.shape 2: get_rank 0 {v.grad.shape}")
-                                            #     print()
-                                            # elif torch.distributed.get_rank() == 1:
-                                            #     print(f"model name: {k} | v.grad.shape 2: get_rank 1 {v.grad.shape}")
-                                            #     print()
-
                                             v.grad *= mask
                             else:
                                 mask = torch.zeros_like(v.grad)

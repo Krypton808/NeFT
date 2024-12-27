@@ -1,4 +1,7 @@
 import os
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
+os.environ["FSDP_USE_ORIG_PARAMS"] = "true"
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -7,8 +10,8 @@ import evaluate
 import torch
 import transformers
 
-# os.environ["WANDB_DISABLED"] = "true"
-#os.environ["WANDB_PROJECT"] = "sft_xnli_en_all_layers"
+os.environ["WANDB_DISABLED"] = "true"
+
 
 @dataclass
 class SFTConfig:
@@ -16,7 +19,7 @@ class SFTConfig:
     dataset_name: Optional[str] = field(default=None, metadata={"help": "Huggingface dataset name"})
     train_file_path: Optional[str] = field(default=None, metadata={"help": "Path to train data file/directory"})
     validate_file_path: Optional[str] = field(default=None, metadata={"help": "Path to validation data file/directory"})
-    max_length: int = field(default=1024, metadata={"help": "Max length of input"})
+    max_length: int = field(default=8192, metadata={"help": "Max length of input"})
     text_key_name: Optional[str] = field(default="content",
                                          metadata={"help": "key to text field name in train and validation file"})
     preprocess_num_workers: int = field(default=8,
@@ -40,7 +43,7 @@ def compute_metrics(eval_preds):
     preds, labels = eval_preds
     labels = labels[:, 1:].reshape(-1)
     preds = preds[:, :-1].reshape(-1)
-    metric = evaluate.load("accuracy")
+    metric = evaluate.load("/mnt/data1/utils/evaluate_metric/accuracy")
     return metric.compute(predictions=preds, references=labels)
 
 
@@ -67,13 +70,6 @@ def main():
 
     model = transformers.LlamaForCausalLM.from_pretrained(sft_config.model_name_or_path)
 
-    # for k, v in model.named_parameters():
-    #     if '.30.' in k and 'mlp' in k:
-    #         print(k)
-    #         v.requires_grad = True
-    #     else:
-    #         v.requires_grad = False
-
     if sft_config.dataset_name:
         ds = datasets.load_dataset(sft_config.dataset_name)
         train_ds, validation_ds = ds['train'], ds['validation']
@@ -89,28 +85,30 @@ def main():
                                                                      'validation': sft_config.validate_file_path})
 
     def process_supervised(record):
-        input_s = "\n\n### Instruction:\n" + record['instruction'] + "\n\n### Response:\n"
+
+        input_s = record['input']
         output_s = record['output']
-        tokenized = tokenizer([input_s, output_s])
+
+        tokenized = tokenizer([input_s, output_s], add_special_tokens=False)
         token_ids = [tok_id for tok_ids in tokenized['input_ids'] for tok_id in tok_ids]
         attention_mask = [mask for masks in tokenized['attention_mask'] for mask in masks]
-        if token_ids[-1] != tokenizer.eos_token_id:
-            token_ids += [tokenizer.eos_token_id]
-            attention_mask += [1]
+
         processed_record = {
             "input_ids": token_ids[:sft_config.max_length],
             "attention_mask": attention_mask[:sft_config.max_length],
             "labels": token_ids.copy()[:sft_config.max_length]
         }
         # ignore input label, label is ignored if value is -100
-        processed_record["labels"][:min(len(tokenized["input_ids"][0]), sft_config.max_length)] = [-100] * min(len(tokenized["input_ids"][0]), sft_config.max_length)
+        processed_record["labels"][:min(len(tokenized["input_ids"][0]), sft_config.max_length)] = [-100] * min(
+            len(tokenized["input_ids"][0]), sft_config.max_length)
+
         return {k: torch.tensor(v, dtype=torch.int) for k, v in processed_record.items()}
 
     with training_args.main_process_first(desc="Process supervised dataset"):
         sft_dataset = raw_datasets.map(
             process_supervised,
             batched=False,
-            num_proc=sft_config.preprocess_num_workers,
+            # num_proc=sft_config.preprocess_num_workers,
             remove_columns=raw_datasets["train"].column_names,
             desc="Process supervised dataset"
         )
@@ -125,94 +123,15 @@ def main():
                                                                       max_length=sft_config.max_length,
                                                                       label_pad_token_id=-100),
         compute_metrics=compute_metrics if training_args.do_eval else None,
-        preprocess_logits_for_metrics=preprocess_logits_for_metrics,
+        preprocess_logits_for_metrics=preprocess_logits_for_metrics
 
     )
 
     # trigger Training
     trainer.train()
     trainer.save_model()
-    # trainer.save_state()
 
 
 if __name__ == '__main__':
     main()
-"""
-nohup deepspeed \
---include="localhost:0,1,2,3,4,5,6,7" \
-./train_sft.py \
---deepspeed /data/tigerbot/tigerbot_geely/test/haoyunx/work/Collection_of_training_methods/ds_config/ds_config_zero3.json \
---model_name_or_path /mnt/nfs/algo/intern/haoyunx11/models/llm/llama-2/Llama-2-7b-chat-hf \
---train_file_path /data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/baselines/data/xnli/en_standard_prompt_3w.jsonl \
---validate_file_path /data5/haoyun.xu/study/MI/MMMI/src/MI/experiment_setup/baselines/data/xnli/en_standard_prompt_last1k_eval.jsonl \
---do_train \
---output_dir /mnt/nfs/algo/intern/haoyunx11/models/sft/xnli/en \
---overwrite_output_dir \
---preprocess_num_workers 8 \
---num_train_epochs 1 \
---learning_rate 2e-5 \
---evaluation_strategy steps \
---eval_steps 500 \
---bf16 True \
---save_strategy steps \
---save_steps 500 \
---save_total_limit 2 \
---logging_steps 10 \
---tf32 True \
---per_device_train_batch_size 6 \
---per_device_eval_batch_size 6 \
---save_total_limit 5 \
---report_to wandb >sft_xnli_en_all_layers.out 2>&1 &
 
-
-
-nohup deepspeed \
---include="localhost:0,1,2,3,4,5,6,7" \
-./train_sft.py \
---deepspeed /data/tigerbot/tigerbot_geely/test/haoyunx/work/Collection_of_training_methods/ds_config/ds_config_zero3.json \
---model_name_or_path /data/tigerbot/tigerbot_geely/test/haoyunx/work/models/tigerbot-70b-chat-v5-8k-hf-37000 \
---train_file_path /data/tigerbot/tigerbot_geely/test/haoyunx/work/data/jike/identity/jike_identity.jsonl \
---validate_file_path /data/tigerbot/tigerbot_geely/test/haoyunx/work/data/jike/identity/jike_identity.jsonl \
---do_train \
---output_dir /data/tigerbot/tigerbot_geely/test/haoyunx/work/models/krgpt/version1 \
---overwrite_output_dir \
---preprocess_num_workers 8 \
---num_train_epochs 2 \
---max_length 128 \
---learning_rate 2e-5 \
---evaluation_strategy steps \
---eval_steps 10 \
---bf16 True \
---save_strategy epoch \
---save_total_limit 2 \
---logging_steps 10 \
---tf32 True \
---per_device_train_batch_size 1 \
---per_device_eval_batch_size 2 \
---save_total_limit 2 >sft_xnli_en_all_layers.out 2>&1 &
-
-deepspeed train_with_lora.py \
---deepspeed /data/tigerbot/tigerbot_geely/test/haoyunx/work/Collection_of_training_methods/ds_config/ds_config_zero3.json \
---model_name_or_path /data/tigerbot/tigerbot_geely/test/haoyunx/work/models/tigerbot-70b-chat-v5-8k-hf-37000 \
---train_file_path /data/tigerbot/tigerbot_geely/test/haoyunx/work/data/jike/identity/jike_identity.jsonl \
---validate_file_path /data/tigerbot/tigerbot_geely/test/haoyunx/work/data/jike/identity/jike_identity.jsonl\
---do_train \
---output_dir /data/tigerbot/tigerbot_geely/test/haoyunx/work/models/krgpt/version1 \
---overwrite_output_dir \
---preprocess_num_workers 8 \
---num_train_epochs 2 \
---learning_rate 2e-5 \
---evaluation_strategy steps \
---eval_steps 10 \
---bf16 True \
---save_strategy epoch \
---logging_steps 10 \
---tf32 True \
---per_device_train_batch_size 1 \
---per_device_eval_batch_size 2 \
---save_total_limit 2 \
---lora_r 16 >train_jike_identity_16.out 2>&1 &
-
-
-
-"""
