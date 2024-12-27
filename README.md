@@ -45,7 +45,7 @@ python cal_neuron_sim.py
 # 4. neuron_number, number of neurons ready for NeFT
 ```
 
-## Step3: Train Neurons
+## Step3: Train Neurons (NeFT)
 ```shell
 cd train_neuron
 torchrun --nproc_per_node=2 --master_port=25640 train_sft_Llama-3.2-1B-Instruct.py \
