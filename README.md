@@ -14,6 +14,11 @@ If you like our project, please give us a star ⭐ on GitHub for the latest upda
 
 <img src = src/main_pic.png>
 
+
+## 📣 News
+* `[2025/01/17]`  ✨ Our paper is accepted by **The 31st International Conference on Computational Linguistics (COLING 2025)**. See you in Abu Dhabi, UAE!
+
+
 ## An application using NeFT
 ### Model: Mistral-7B-v0.1
 ### Dataset: alpaca
