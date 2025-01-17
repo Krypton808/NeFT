@@ -1,5 +1,16 @@
-# Let's Focus on Neuron: Neuron-Level Supervised Fine-tuning for Large Language Model
+<h2 align="center"> <a href="https://arxiv.org/abs/2403.11621">[COLING 2025] Let's Focus on Neuron: Neuron-Level Supervised Fine-tuning for Large Language Model </a></h2>
 
+<h5 align="center"> 
+
+If you like our project, please give us a star ⭐ on GitHub for the latest update.  </h2>
+
+</h5>
+
+<div align=center>
+  
+[![arXiv](https://img.shields.io/badge/Arxiv-2410.23746-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2403.11621)
+
+</div>
 
 <img src = src/main_pic.png>
 
@@ -81,3 +92,15 @@ Possible runtime issues:
 
 I used 2 80G A800 GPUs to train with NeFT, an error occurs when attempting to use more GPUs, indicating a mismatch between the dimensions of the mask and the gradient. This issue may be related to the sharding mechanism of the training framework. I will follow up on this engineering issue later.
 
+## Citation
+
+If you find our paper and code useful in your research, please consider giving a star ⭐ and citation 📝.
+
+```BibTeX
+@article{xu2024let,
+  title={Let's Focus on Neuron: Neuron-Level Supervised Fine-tuning for Large Language Model},
+  author={Xu, Haoyun and Zhan, Runzhe and Wong, Derek F and Chao, Lidia S},
+  journal={arXiv preprint arXiv:2403.11621},
+  year={2024}
+}
+```
